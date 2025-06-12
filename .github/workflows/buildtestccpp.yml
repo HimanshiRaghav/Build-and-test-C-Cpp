@@ -1,0 +1,92 @@
+name: C/C++ Building and testing
+on:
+  workflow_dispatch:
+    inputs:
+      compiler:
+        description: Compiler either gcc or clang
+        required: true
+        default: "gcc"
+      build-system:
+        description: Build system either make or cmake
+        required: true
+        default: "make"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@main
+        
+      - name: Validate inputs
+        run: |
+          if [[ "${{inputs.compiler}}" != "gcc" && "${{inputs.compiler}}" != "clang"]]; then 
+            echo "Invalid compiler: ${{inputs.compiler}}"
+            exit 1
+          fi
+          if [["${{inputs.build-system }}" != "make" && "${{build-system}}" !="cmake"]]; then
+            echo "Invalid build system: ${{inputs.build-system}}"
+            exit 1
+          fi
+      - name: Install ${{ inputs.compiler }}
+        run: |
+          sudo apt-get update
+          if [[ "${{ inputs.compiler }}" == "gcc" ]]; then
+            sudo apt-get install -y build-essential
+          elif [[ "${{ inputs.compiler }}" == "clang" ]]; then
+            sudo apt-get install -y clang make
+          fi
+      - name: Configure environment variables
+        run: |
+          if [[ "${{ inputs.compiler }}" == "clang" ]]; then
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          else
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          fi
+      - name: Install CMake
+        if: inputs.build-system == 'cmake'
+        run: sudo apt-get install -y cmake
+        
+      - name: Build with CMake
+        if: inputs.build-system == 'cmake'
+        run: |
+          mkdir -p build
+          cd build
+          cmake .. 
+          make
+  
+      - name: Build with Make
+        if: inputs.build-system == 'make'
+        run: make
+        
+      - name: Run Unit Tests
+        run: |
+          if [-f "./run_tests.sh"]; then
+            chmod +x ./run_tests.sh
+            ./run_tests.sh
+          elif [-f "./build/tests/test"]; then
+            ./build/tests/test
+          elif [ -f "./test" ]; then
+            ./test
+          else
+            echo " No test executable or test script found."
+          fi
+ 
+      - name: Store build and test logs
+        if: always()
+        run: |
+          mkdir -p logs
+          cp -r build/*.log logs/ 2>/dev/null || true 
+          # Copies all .log files from the build/ directory into the logs/ directory.
+          cp -r *.log logs/ 2>/dev/null || true
+          # Copies all .log files from the current directory into the logs/ directory.
+        continue-on-error: true
+ 
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@main
+        with:
+          name: build-and-test-logs
+          path: logs/
+ 
