@@ -1,6 +1,6 @@
 name: C/C++ Building and testing
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       compiler:
         description: Compiler either gcc or clang
