@@ -92,6 +92,8 @@ jobs:
           if [ ! -f "./test_exec" ]; then
             echo "test_exec not found, attempting to build it with 'make test_exec'..."
             make test_exec
+          else
+            echo " kuch nhi mila bc "
           fi
 
           # Run test script or binary
