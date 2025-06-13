@@ -59,14 +59,13 @@ jobs:
         run: |
           if [ ! -f CMakeLists.txt ]; then
             echo "CMakeLists.txt not found. Generating a default one..."
-            cat <<EOF > CMakeLists.txt
-cmake_minimum_required(VERSION 3.10)
-project(MyProject)
-set(CMAKE_CXX_STANDARD 17)
-file(GLOB SOURCES "*.cpp")
-add_executable(MyExecutable \${SOURCES})
-EOF
+            echo 'cmake_minimum_required(VERSION 3.10)' > CMakeLists.txt
+            echo 'project(MyProject)' >> CMakeLists.txt
+            echo 'set(CMAKE_CXX_STANDARD 17)' >> CMakeLists.txt
+            echo 'file(GLOB SOURCES "*.cpp")' >> CMakeLists.txt
+            echo 'add_executable(MyExecutable ${SOURCES})' >> CMakeLists.txt
           fi
+
 
       - name: Build with CMake
         if: ${{ inputs.build-system == 'cmake' }}
