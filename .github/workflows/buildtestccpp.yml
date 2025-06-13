@@ -93,7 +93,7 @@ jobs:
             echo "test_exec not found, attempting to build it with 'make test_exec'..."
             make test_exec
           else
-            echo " kuch nhi mila bc "
+            echo " test_exec is being found "
           fi
 
           # Run test script or binary
