@@ -81,18 +81,35 @@ jobs:
           mkdir -p logs
           make > logs/make_build.log 2>&1
 
-      - name: Run Unit Tests
+      # - name: Run Unit Tests
+      #   run: |
+      #     mkdir -p logs
+      #     if [ -f "./run_tests.sh" ]; then
+      #       chmod +x ./run_tests.sh
+      #       ./run_tests.sh > logs/test_output.log 2>&1
+      #       echo "Exit Code: $?" >> logs/test_output.log
+      #     elif [ -f "./build/tests/test" ]; then
+      #       ./build/tests/test > logs/test_output.log 2>&1
+      #       echo "Exit Code: $?" >> logs/test_output.log
+      #     elif [ -f "./test" ]; then
+      #       ./test > logs/test_output.log 2>&1
+      #       echo "Exit Code: $?" >> logs/test_output.log
+      #     else
+      #       echo "No test executable or test script found." > logs/test_output.log
+      #     fi
+      - name: Run Unit Tests (Make)
+        if: ${{ inputs.build-system == 'make' }}
         run: |
           mkdir -p logs
+          make print-debug || true  # Optional: helps verify test_exec exists
+
           if [ -f "./run_tests.sh" ]; then
             chmod +x ./run_tests.sh
             ./run_tests.sh > logs/test_output.log 2>&1
             echo "Exit Code: $?" >> logs/test_output.log
-          elif [ -f "./build/tests/test" ]; then
-            ./build/tests/test > logs/test_output.log 2>&1
-            echo "Exit Code: $?" >> logs/test_output.log
-          elif [ -f "./test" ]; then
-            ./test > logs/test_output.log 2>&1
+          elif [ -f "./test_exec" ]; then
+            chmod +x ./test_exec
+            ./test_exec > logs/test_output.log 2>&1
             echo "Exit Code: $?" >> logs/test_output.log
           else
             echo "No test executable or test script found." > logs/test_output.log
