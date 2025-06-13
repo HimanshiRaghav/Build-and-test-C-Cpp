@@ -6,12 +6,10 @@ on:
       compiler:
         description: Compiler either gcc or clang
         required: true
-        default: "gcc"
         type: string
       build-system:
         description: Build system either make or cmake
         required: true
-        default: "make"
         type: string
 
 jobs:
@@ -33,7 +31,7 @@ jobs:
             exit 1
           fi
 
-      - name: Install ${{ inputs.compiler }}
+      - name: Install compiler
         run: |
           sudo apt-get update
           if [[ "${{ inputs.compiler }}" == "gcc" ]]; then
@@ -90,10 +88,13 @@ EOF
           if [ -f "./run_tests.sh" ]; then
             chmod +x ./run_tests.sh
             ./run_tests.sh > logs/test_output.log 2>&1
+            echo "Exit Code: $?" >> logs/test_output.log
           elif [ -f "./build/tests/test" ]; then
             ./build/tests/test > logs/test_output.log 2>&1
+            echo "Exit Code: $?" >> logs/test_output.log
           elif [ -f "./test" ]; then
             ./test > logs/test_output.log 2>&1
+            echo "Exit Code: $?" >> logs/test_output.log
           else
             echo "No test executable or test script found." > logs/test_output.log
           fi
@@ -116,17 +117,17 @@ EOF
       - name: Summarize Build and Test Results
         if: always()
         run: |
-          echo "##  Build and Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Build and Test Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
 
           BUILD_LOG="logs/cmake_build.log"
           [ "${{ inputs.build-system }}" == "make" ] && BUILD_LOG="logs/make_build.log"
 
-          if grep -i "error:" "$BUILD_LOG"; then
-            echo "| Build | Failed |" >> $GITHUB_STEP_SUMMARY
+          if grep -i "error:" "$BUILD_LOG" | grep -v 'note:'; then
+            echo "| Build | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Build | Passed |" >> $GITHUB_STEP_SUMMARY
+            echo "| Build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           fi
 
           if grep -q "No test executable or test script found" logs/test_output.log; then
