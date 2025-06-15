@@ -71,8 +71,10 @@ jobs:
           mkdir -p logs
           make > logs/make_build.log 2>&1
 
-      - name: Run Unit Tests (Make)
-        if: ${{ inputs.build-system == 'make' }}
+      
+
+      - name: Run Unit Tests
+        id: test_step
         run: |
           mkdir -p logs
 
@@ -81,8 +83,7 @@ jobs:
 
           # Check if test_exec exists, if not, build it
           if [ ! -f "./test_exec" ]; then
-            echo "test_exec not found, attempting to build it with 'make test_exec'..."
-            make test_exec
+            echo "test_exec not found"
           else
             echo " test_exec is being found "
           fi
